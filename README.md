@@ -5,6 +5,7 @@ The Library Management System (LMS) is a Java application designed to manage a l
 (The 7 points represent the 7 buttons on the GUI display)
 
 Instructions:
+
 1)Adding a User:
 Click on the "Add User" button.
 Enter the User ID, Name, and Contact Info in the provided dialog box.
