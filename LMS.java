@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.File;
 import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 // Book class
@@ -120,7 +122,7 @@ class User {
         System.out.println("Contact Info: " + contactInfo);
         System.out.println("Borrowed Books:");
         for (Book book : borrowedBooks) {  
-            // enhanced for loop to iterate over a book object in the borrowedbooks array
+     // enhanced for loop to iterate over a book object in the borrowedbooks array
             book.displayBookDetails();
         }
     }
@@ -130,11 +132,14 @@ class User {
 class Library {
     private ArrayList<Book> books;  // array lists for books and users
     private ArrayList<User> users;
+    
 
     // Constructor
     public Library() {
         books = new ArrayList<>();
         users = new ArrayList<>();
+        readBooksFile("books.txt");
+        readUsersFile("users.txt");
     }
 
     // Getters for books and users
@@ -149,21 +154,19 @@ class Library {
     // Method to add a user
     public void addUser(int userID, String name, String contactInfo) {
         users.add(new User(userID, name, contactInfo));
-        // .add built-in function for arraylists, adds a user object
+        // .add is a built-in function for arraylists, adds a user object
         saveUsersToFile("users.txt");
         System.out.println("User added successfully!");
     }
-
     // Method to add a book
     public void addBook(int bookID, String title, String author, String genre) {
         books.add(new Book(bookID, title, author, genre));
         saveBooksToFile("books.txt");
         System.out.println("Book added successfully!");
     }
-
     // Method to save users to a file
     public void saveUsersToFile(String filename) {
-        try (FileWriter writer = new FileWriter(filename, true)) {
+        try (FileWriter writer = new FileWriter(filename)) {
             for (User user : users) {// iterating over each user object
                 writer.write(user.getUserID() + "," + user.getName() + "," + user.getContactInfo() + "\n");
             }
@@ -172,16 +175,50 @@ class Library {
             System.err.println("Error saving users to file: " + e.getMessage());
         }
     }
-
     // Method to save books to a file
     public void saveBooksToFile(String filename) {
-        try (FileWriter writer = new FileWriter(filename, true)) {
+        try (FileWriter writer = new FileWriter(filename, false)) {
             for (Book book : books) {
                 writer.write(book.getBookID() + "," + book.getTitle() + "," + book.getAuthor() + "," + book.getGenre() + "," + book.isAvailable() + "\n");
             }
             System.out.println("Books saved to file successfully.");
         } catch (IOException e) {
             System.err.println("Error saving books to file: " + e.getMessage());
+        }
+    }
+    // Method to read users from a file
+    public void readUsersFile(String filename) {
+        try (Scanner input = new Scanner(new File(filename))) {
+            while (input.hasNextLine()) {  // to iterate over each line
+                String line = input.nextLine();
+                String[] parts = line.split(","); // splitting the line to an array
+                if (parts.length == 3) {
+                    int userID = Integer.parseInt(parts[0]); // convertin gstring to int
+                    String name = parts[1];
+                    String contactInfo = parts[2];
+                    users.add(new User(userID, name, contactInfo));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error reading users from file: " + e.getMessage());
+        }
+    }
+    // Method to read books from a file
+    public void readBooksFile(String filename) {
+        try (Scanner input = new Scanner(new File(filename))) { //takes the filename as input
+            while (input.hasNextLine()) {
+                String line = input.nextLine();
+                String[] parts = line.split(","); 
+                if (parts.length == 5) { // all book details stored in its respective variables
+                    int bookID = Integer.parseInt(parts[0]);
+                    String title = parts[1];
+                    String author = parts[2];
+                    String genre = parts[3];
+                    books.add(new Book(bookID, title, author, genre));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error reading books from file: " + e.getMessage());
         }
     }
 
@@ -197,7 +234,6 @@ class Library {
             System.out.println("Book not found!");
             return false;
         }
-
         if (book.isAvailable() == true) {
             book.setAvailable(false);
             user.getBorrowedBooks().add(book);  // adds the book to the user's borrow list
@@ -255,7 +291,7 @@ class Library {
         if (books.isEmpty()) {
             System.out.println("No books available in the library.");
         } else {
-            for (Book book : books) {
+            for (Book book : books) { // iterates over book objects
                 book.displayBookDetails(); 
                 System.out.println();
             }
@@ -276,7 +312,7 @@ class Library {
 }
 
 // Main class
-public class LMS extends JFrame implements ActionListener {
+public class LMS extends JFrame implements ActionListener { // for GUI
     private Library library;
     private JFrame frame;
     private JPanel panel;
@@ -289,7 +325,6 @@ public class LMS extends JFrame implements ActionListener {
         panel = new JPanel();
         panel.setLayout(new GridLayout(7, 1));
         panel.setBackground(Color.LIGHT_GRAY);
-
         // Buttons
         addUserButton = new JButton("Add User");
         addBookButton = new JButton("Add Book");
@@ -299,7 +334,7 @@ public class LMS extends JFrame implements ActionListener {
         searchbyIDButton = new JButton("Search for a Book");
         exitButton = new JButton("Exit");
 
-        // Add buttons to panel
+        // Adding buttons to panel
         panel.add(addUserButton);
         panel.add(addBookButton);
         panel.add(borrowBookButton);
@@ -308,13 +343,13 @@ public class LMS extends JFrame implements ActionListener {
         panel.add(searchbyIDButton);
         panel.add(exitButton);
 
-        // Add panel to frame
+        // Adding panel to frame
         frame.add(panel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 500);
         frame.setVisible(true);
 
-        // Add action listeners to buttons
+        // Adding action listeners to buttons
         addUserButton.addActionListener(this);
         addBookButton.addActionListener(this);
         borrowBookButton.addActionListener(this);
@@ -323,7 +358,6 @@ public class LMS extends JFrame implements ActionListener {
         searchbyIDButton.addActionListener(this);
         exitButton.addActionListener(this);
     }
-
     // ActionListener implementation
     public void actionPerformed(ActionEvent e) {
         Scanner input = new Scanner(System.in);
@@ -341,15 +375,20 @@ public class LMS extends JFrame implements ActionListener {
 
             int result = JOptionPane.showConfirmDialog(null, myPanel,
                 "Please Enter User Details", JOptionPane.OK_CANCEL_OPTION);
+                // shows a panel for options with "Ok" and "Cancel" options
             if (result == JOptionPane.OK_OPTION) {
                 String userIDText = userIDField.getText();
-                // getText is used to retrieve the text entered
+                // getText is used to retrieve the string of text entered
                 String name = nameField.getText();
                 String contactInfo = contactInfoField.getText();
                 if (!userIDText.isEmpty() && !name.isEmpty() && !contactInfo.isEmpty()) {
                     int userID = Integer.parseInt(userIDText);
-                    library.addUser(userID, name, contactInfo); //calling addUser method
-                    JOptionPane.showMessageDialog(null, "User added!");
+                    if (contactInfo.length() == 10) { // contact info to have a length of 10
+                        library.addUser(userID, name, contactInfo); //calling addUser method
+                        JOptionPane.showMessageDialog(null, "User added!");
+                    } else{
+                        JOptionPane.showMessageDialog(null,"Invalid contact info! Please enter a 10-digit phone number.");
+                    }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields!");
                 }
@@ -387,8 +426,7 @@ public class LMS extends JFrame implements ActionListener {
             }
         } else if (e.getSource() == borrowBookButton) {
             JTextField userIDField = new JTextField();
-             JTextField bookIDField = new JTextField();
-
+            JTextField bookIDField = new JTextField();
             JPanel panel = new JPanel(new GridLayout(2, 2));
             panel.add(new JLabel("User ID:"));
             panel.add(userIDField);
@@ -401,10 +439,10 @@ public class LMS extends JFrame implements ActionListener {
                 String userIDText = userIDField.getText();
                 String bookIDText = bookIDField.getText();
                 if (!userIDText.isEmpty() && !bookIDText.isEmpty()) {
-            int userID = Integer.parseInt(userIDText);
-            int bookID = Integer.parseInt(bookIDText);
-            boolean success = library.borrowBook(userID, bookID);
-            if (success) {
+                    int userID = Integer.parseInt(userIDText); // converting string to int
+                    int bookID = Integer.parseInt(bookIDText);
+                    boolean success = library.borrowBook(userID, bookID);
+            if (success == true) {
                 JOptionPane.showMessageDialog(frame, "Book borrowed successfully!");
             } else {
                 JOptionPane.showMessageDialog(frame, "Failed to borrow book. User or book not found or book is not available.");
@@ -414,15 +452,13 @@ public class LMS extends JFrame implements ActionListener {
         }
     }
         } else if (e.getSource() == returnBookButton) {
-            JTextField userIDField = new JTextField();
+            JTextField userIDField = new JTextField(); // creating text fields to input data
             JTextField bookIDField = new JTextField();
-        
             JPanel panel = new JPanel(new GridLayout(2, 2));
             panel.add(new JLabel("User ID:"));
             panel.add(userIDField);
             panel.add(new JLabel("Book ID:"));
             panel.add(bookIDField);
-        
             int result = JOptionPane.showConfirmDialog(frame, panel, "Return a Book",
                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (result == JOptionPane.OK_OPTION) {
@@ -431,7 +467,7 @@ public class LMS extends JFrame implements ActionListener {
                 if (!userIDText.isEmpty() && !bookIDText.isEmpty()) {
                     int userID = Integer.parseInt(userIDText);
                     int bookID = Integer.parseInt(bookIDText);
-                    boolean success = library.returnBook(userID, bookID);
+                    boolean success = library.returnBook(userID, bookID); // calling method to return book
                     if (success) {
                         JOptionPane.showMessageDialog(frame, "Book returned successfully!");
                     } else {
@@ -449,7 +485,7 @@ public class LMS extends JFrame implements ActionListener {
             User user = library.findUser(userID);
             if (user != null) {
                 JTextArea textArea = new JTextArea(20, 40);
-                textArea.setEditable(false);
+                textArea.setEditable(false); // so that the user cannot edit any text
                 if (user.getBorrowedBooks().isEmpty()) {
                     textArea.append("User has not borrowed any books.");
                 } else {
@@ -462,6 +498,7 @@ public class LMS extends JFrame implements ActionListener {
                     }
                 }
                 JScrollPane scrollPane = new JScrollPane(textArea);
+                // so that the pane can be scrolled to view all the text
                 JOptionPane.showMessageDialog(frame, scrollPane, "Borrowed Books", JOptionPane.PLAIN_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(frame, "User not found!");
@@ -475,7 +512,7 @@ public class LMS extends JFrame implements ActionListener {
         }else if (e.getSource() == displayBooksButton) {
             JTextArea textArea = new JTextArea(20, 40);
             textArea.setEditable(false);
-            if (library.getBooksArrayList().isEmpty()) {
+            if (library.getBooksArrayList().isEmpty()) { // library is empty
                 textArea.append("No books available in the library.");
             } else {
                 for (Book book : library.getBooksArrayList()) {
@@ -490,15 +527,12 @@ public class LMS extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(frame, scrollPane, "Library Books", JOptionPane.PLAIN_MESSAGE);
         } else if (e.getSource() == exitButton) {
             JOptionPane.showMessageDialog(frame, "Exiting...");
-            System.exit(0);
+            System.exit(0);  // to exit the program
         }
         input.close();
     }
-
-       
-
-    // Main method
+    // Main method in LMS 
     public static void main(String[] args) {
-        new LMS();
+        new LMS();  // calling constructor
     }
 }
