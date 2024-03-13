@@ -166,12 +166,12 @@ class Library {
     }
     // Method to save books to a file
     public void saveBooksToFile(String filename) {
-        try (FileWriter writer = new FileWriter(filename) { 
+        try (FileWriter writer = new FileWriter(filename)) { 
             for (Book book : books) {  // same procedure as users
                 writer.write(book.getBookID() + "," + book.getTitle() + "," + book.getAuthor() + "," + book.getGenre() + "," + book.isAvailable() + "\n");
             }
             System.out.println("Books saved to file successfully.");
-        } catch (IOException e) {
+        } catch(IOException e) {
             System.err.println("Error saving books to file: " + e.getMessage());
         }
     }
@@ -351,131 +351,125 @@ public class LMS extends JFrame implements ActionListener { // for GUI
     public void actionPerformed(ActionEvent e) {
         Scanner input = new Scanner(System.in);
         if (e.getSource() == addUserButton) {  // getSource() method returns which event is causing an action to perform
-            JTextField userIDField = new JTextField(); // textfields are provided for the user to input
-            JTextField nameField = new JTextField();
-            JTextField contactInfoField = new JTextField();
-            JPanel myPanel = new JPanel(new GridLayout(3, 2));   
- // creates 3 rows and 2 columns  using the GridLayout() method and creates an object of JPanel to create a new panel for adding user
-            myPanel.add(new JLabel("User ID:"));  //JLabel is used to print a descriptive text and prompts user to add User ID
-            myPanel.add(userIDField);    // takes the UserID as input
-            myPanel.add(new JLabel("Name:"));  // same as user ID
-            myPanel.add(nameField);
-            myPanel.add(new JLabel("Contact Info:"));
-            myPanel.add(contactInfoField);
-
-            int result = JOptionPane.showConfirmDialog(null, myPanel,
-                "Please Enter User Details", JOptionPane.OK_CANCEL_OPTION);
-                // null so that this option is displayed at the center, display the panel created for adding user
-              // The 3rd parameter is the title of the dialog box and 4th shows a panel for options with "Ok" and "Cancel" 
-            if (result == JOptionPane.OK_OPTION) {  // compares what the user chose "OK" or "Cancel" and then proceeds
-                String userIDText = userIDField.getText(); // getText is used to retrieve the text entered by the user
-                String name = nameField.getText();
-                String contactInfo = contactInfoField.getText();
-                if (!userIDText.isEmpty() && !name.isEmpty() && !contactInfo.isEmpty()) { // to make sure that no field is left empty
-                    int userID = Integer.parseInt(userIDText);  // converting the user ID from string to int
-                    if (contactInfo.length() == 10) { // contact info to have a length of 10 to be valid
-                        library.addUser(userID, name, contactInfo); //calling addUser method
-                        JOptionPane.showMessageDialog(null, "User added!");  // null specifies that there the text is to be printed at the center
-                    } else{
-                        JOptionPane.showMessageDialog(null,"Invalid contact info! Please enter a 10-digit phone number.");
+            String userIDText = JOptionPane.showInputDialog(frame, "Enter User ID:"); //.showInputDialog is used for input
+            String name = JOptionPane.showInputDialog(frame, "Enter Name:");
+            String contactInfo = JOptionPane.showInputDialog(frame, "Enter Contact Info:");
+            if (userIDText != null && !userIDText.isEmpty() && name != null && !name.isEmpty() && contactInfo != null && !contactInfo.isEmpty()) {
+            // to make sure no field is left empty and the input is not pointing to a null reference
+                try {
+                    int userID = Integer.parseInt(userIDText);  // converting string to int
+                    if (contactInfo.length() == 10) {  // contact info to be of length 10
+                        boolean exists = false;
+                    for (User user : library.getUsersArrayList()) { // to check if user ID already exists in the user list
+                    if (user.getUserID() == userID) {
+                        exists = true;  // user exists so break
+                        break;
                     }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields!");
                 }
+                if (exists == false) {
+                    library.addUser(userID, name, contactInfo); // if does not exist then add user
+                    JOptionPane.showMessageDialog(frame, "User added!");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "User ID already exists!");
+                }
+                    } else{
+                        JOptionPane.showMessageDialog(frame,"Invalid contact info! Please enter a 10-digit phone number.");
+                    }
+                } catch (NumberFormatException ex) {  // if invalid userId is enterted which cannot be parsed to int
+                    JOptionPane.showMessageDialog(frame, "Invalid User ID! Please enter a valid integer.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
             }
         } else if (e.getSource() == addBookButton) {
-            JTextField bookIDField = new JTextField(); // textfields are provided for the user to input
-            JTextField titleField = new JTextField();
-            JTextField authorField = new JTextField();
-            JTextField genreField = new JTextField();
-            // book details
-            JPanel panel = new JPanel(new GridLayout(4, 2));
-             // creates 4 rows and 2 columns  using the GridLayout() method and creates an object of JPanel to create a new panel for adding book
-            panel.add(new JLabel("Book ID:")); // used to prompt the user to enter Book ID and respective book details
-            panel.add(bookIDField);  // takes the value entered
-            panel.add(new JLabel("Title:"));
-            panel.add(titleField);
-            panel.add(new JLabel("Author:"));
-            panel.add(authorField);
-            panel.add(new JLabel("Genre:"));
-            panel.add(genreField);
-            int result = JOptionPane.showConfirmDialog(frame, panel, "Add Book",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            // null so that this option is displayed at the center, display the panel created for adding book
-             // The 3rd parameter is the title of the dialog box and 4th shows a panel for options with "Ok" and "Cancel" 
-            if (result == JOptionPane.OK_OPTION) {
-                String bookIDText = bookIDField.getText();  // gets the values entered by the user
-                String title = titleField.getText();
-                String author = authorField.getText();
-                String genre = genreField.getText();
-                if (!bookIDText.isEmpty() && !title.isEmpty() && !author.isEmpty() && !genre.isEmpty()) { // to make sure no field is left empty
-                    int bookID = Integer.parseInt(bookIDText);  // converting the bookID from string to int
-                    library.addBook(bookID, title, author, genre);  // calls the addBook method
-                    JOptionPane.showMessageDialog(frame, "Book added successfully!");
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
+    // Prompt user to enter book details using input dialog boxes
+    String bookIDText = JOptionPane.showInputDialog(frame, "Enter Book ID:");
+    String title = JOptionPane.showInputDialog(frame, "Enter Title:");
+    String author = JOptionPane.showInputDialog(frame, "Enter Author:");
+    String genre = JOptionPane.showInputDialog(frame, "Enter Genre:");
+    // Checking if all fields are filled
+    if (bookIDText != null && !bookIDText.isEmpty() && title != null && !title.isEmpty() && author != null && !author.isEmpty() && genre != null && !genre.isEmpty()) {
+        try {
+            // Convert book ID string to integer
+            int bookID = Integer.parseInt(bookIDText);
+            boolean exists = false;
+            for (Book book : library.getBooksArrayList()) { // to check if book already exists
+                if (book.getBookID() == bookID) {
+                    exists = true;  // if found then book exists so break
+                    break;
                 }
             }
-        } else if (e.getSource() == borrowBookButton) {
-            JTextField userIDField = new JTextField();  // text field to enter text
-            JTextField bookIDField = new JTextField();
-            JPanel panel = new JPanel(new GridLayout(2, 2));   // creating panale of 2 rows and 2 columns
-            panel.add(new JLabel("User ID:"));
-            panel.add(userIDField);
-            panel.add(new JLabel("Book ID:"));
-            panel.add(bookIDField);
-            int result = JOptionPane.showConfirmDialog(frame, panel, "Borrow a Book",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-     // frame to determine the position of the dialog box, displays the panel created for borrowing a book
-     // The 3rd parameter is the title of the dialog box , 4th shows a panel for options with "Ok" and "Cancel" and 5th specifies the message type that it is plain
-            if (result == JOptionPane.OK_OPTION) 
-    //The showConfirmDialog method returns an integer value representing the user's choice. If the user clicks the OK button, it returns JOptionPane.OK_OPTION. If the user clicks the Cancel button or closes the dialog, it returns JOptionPane.CANCEL_OPTION
-                String userIDText = userIDField.getText(); // retrieves the user and book ID
-                String bookIDText = bookIDField.getText();
-                if (!userIDText.isEmpty() && !bookIDText.isEmpty()) {  // to make sure no field is left empty
-                    int userID = Integer.parseInt(userIDText); // converting string to int
-                    int bookID = Integer.parseInt(bookIDText);
-                    boolean success = library.borrowBook(userID, bookID); // borrow book returns a boolean value
-            if (success == true) {  // if book borrowed else
+            if (exists == false) {
+                library.addBook(bookID, title, author, genre); // if book does not exist then add book
+                JOptionPane.showMessageDialog(frame, "Book added successfully!");
+            } else {
+                JOptionPane.showMessageDialog(frame, "Book ID already exists!");
+            }
+        } catch (NumberFormatException ex) {
+            // Display error message if book ID is not a valid integer
+            JOptionPane.showMessageDialog(frame, "Invalid Book ID! Please enter a valid integer.");
+        }
+    } else {
+        // Display error message if any field is empty
+        JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
+    }
+    } else if (e.getSource() == borrowBookButton) {
+            // Prompt user to enter user ID and book ID
+    String userIDText = JOptionPane.showInputDialog(frame, "Enter User ID:");
+    String bookIDText = JOptionPane.showInputDialog(frame, "Enter Book ID:");
+    
+    // Check if user ID and book ID are not empty
+    if (userIDText != null && !userIDText.isEmpty() && bookIDText != null && !bookIDText.isEmpty()) {
+        try {
+            // Convert user ID and book ID strings to integers
+            int userID = Integer.parseInt(userIDText);
+            int bookID = Integer.parseInt(bookIDText);
+            // Borrow the book
+            boolean success = library.borrowBook(userID, bookID);
+            // Display success or error message
+            if (success) {
                 JOptionPane.showMessageDialog(frame, "Book borrowed successfully!");
             } else {
                 JOptionPane.showMessageDialog(frame, "Failed to borrow book. User or book not found or book is not available.");
             }
-        } else {
-            JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
+        } catch (NumberFormatException ex) {
+            // Display error message if user ID or book ID is not a valid integer
+            JOptionPane.showMessageDialog(frame, "Invalid User ID or Book ID! Please enter valid integers.");
         }
+    } else {
+        // Display error message if any field is empty
+        JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
     }
-        } else if (e.getSource() == returnBookButton) {
-            JTextField userIDField = new JTextField(); // creating text fields to input data
-            JTextField bookIDField = new JTextField();
-            JPanel panel = new JPanel(new GridLayout(2, 2));  // creating grid of 2 rows  and 2 columns
-            panel.add(new JLabel("User ID:"));  // to input the user's ID and book ID respectively
-            panel.add(userIDField);
-            panel.add(new JLabel("Book ID:"));
-            panel.add(bookIDField);
-            int result = JOptionPane.showConfirmDialog(frame, panel, "Return a Book",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-// frame to determine the position of the dialog box, displays the panel created for returning a book
-// The 3rd parameter is the title of the dialog box , 4th shows a panel for options with "Ok" and "Cancel" and 5th specifies the message type that it is plain
-            if (result == JOptionPane.OK_OPTION) {
-                String userIDText = userIDField.getText();
-                String bookIDText = bookIDField.getText();
-                if (!userIDText.isEmpty() && !bookIDText.isEmpty()) {  // no field to be left empty
-                    int userID = Integer.parseInt(userIDText);
-                    int bookID = Integer.parseInt(bookIDText);
-                    boolean success = library.returnBook(userID, bookID); // calling method to return book
-                    if (success) {  // if method returns true else
-                        JOptionPane.showMessageDialog(frame, "Book returned successfully!");
-                    } else {
-                        JOptionPane.showMessageDialog(frame, "Failed to return book. User or book not found or book was not borrowed by this user.");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
-                }
+    } else if (e.getSource() == returnBookButton) {
+            // Prompt user to enter user ID and book ID
+    String userIDText = JOptionPane.showInputDialog(frame, "Enter User ID:");
+    String bookIDText = JOptionPane.showInputDialog(frame, "Enter Book ID:");
+    
+    // Check if user ID and book ID are not empty
+    if (userIDText != null && !userIDText.isEmpty() && bookIDText != null && !bookIDText.isEmpty()) {
+        try {
+            // Convert user ID and book ID strings to integers
+            int userID = Integer.parseInt(userIDText);
+            int bookID = Integer.parseInt(bookIDText);
+            // Return the book
+            boolean success = library.returnBook(userID, bookID);
+            // Display success or error message
+            if (success) {
+                JOptionPane.showMessageDialog(frame, "Book returned successfully!");
+            } else {
+                JOptionPane.showMessageDialog(frame, "Failed to return book. User or book not found or book was not borrowed by this user.");
             }
-        } else if (e.getSource() == searchbyIDButton) {
+        } catch (NumberFormatException ex) {
+            // Display error message if user ID or book ID is not a valid integer
+            JOptionPane.showMessageDialog(frame, "Invalid User ID or Book ID! Please enter valid integers.");
+        }
+    } else {
+        // Display error message if any field is empty
+        JOptionPane.showMessageDialog(frame, "Please fill in all fields!");
+    }
+    } else if (e.getSource() == searchbyIDButton) {
             String ID = JOptionPane.showInputDialog(frame, "Enter User ID:"); // prompting user to add ID
-    if (ID != null && !ID.isEmpty()) { // User ID entered, perform search operation
+        if (ID != null && !ID.isEmpty()) { // User ID entered and checking if it has a null reference or is left empty
         try {
             int userID = Integer.parseInt(ID); // converting string to int
             User user = library.findUser(userID);  // finds that user exists in users list
@@ -525,10 +519,11 @@ public class LMS extends JFrame implements ActionListener { // for GUI
             JOptionPane.showMessageDialog(frame, "Exiting...");
             System.exit(0);  // to exit the program
         }
-        input.close();  // closing thr Scanner object input
-    }
+        input.close();  // closing the Scanner object input
+}
     // Main method in LMS 
     public static void main(String[] args) {
         new LMS();  // calling constructor
+        
     }
 }
