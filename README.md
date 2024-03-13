@@ -1,6 +1,7 @@
 # CS212-Assignment-01
 
 The Library Management System (LMS) is a Java application designed to manage a library's operations efficiently. It allows users to add books and users to the system, borrow and return books, display all available books, and search for books by user ID.
+Two files have been added as well for Users and Books, users.txt and books.txt respectively.
 
 (The 7 points represent the 7 buttons on the GUI display)
 
