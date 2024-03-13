@@ -313,7 +313,7 @@ public class LMS extends JFrame implements ActionListener { // for GUI
         library = new Library();
         frame = new JFrame("Library Management System");
         panel = new JPanel();
-        panel.setLayout(new GridLayout(7, 1));
+        panel.setLayout(new GridLayout(7, 1));  // grid with 7 rows and 1 column
         panel.setBackground(Color.LIGHT_GRAY);
         // Buttons
         addUserButton = new JButton("Add User");
